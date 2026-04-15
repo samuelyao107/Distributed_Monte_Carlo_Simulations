@@ -1,6 +1,8 @@
 #pragma once
+#include <nlohmann/json.hpp>
 class Parameters {
 public:
+    Parameters() = default;
     Parameters(double S0, double K, double T, double r, double sigma)
         : S0_(S0), K_(K), T_(T), r_(r), sigma_(sigma) {}
     double S0() const { return S0_; }
@@ -9,4 +11,5 @@ public:
     double r() const { return r_; }
     double sigma() const { return sigma_; }
 private:    double S0_, K_, T_, r_, sigma_;
+NLOHMANN_DEFINE_TYPE_INTRUSIVE(Parameters, S0_, K_, T_, r_, sigma_);
 };

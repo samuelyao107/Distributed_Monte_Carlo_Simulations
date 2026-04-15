@@ -3,11 +3,21 @@
 #include "pricer/Parameters.h"
 #include <algorithm>
 #include <cmath>
+#include <amqpcpp.h>
+#include <amqpcpp/linux_tcp.h>
+#include <nlohmann/json.hpp>
+#include <SimpleAmqpClient/SimpleAmqpClient.h>
+#include <numeric>
 
 int num_paths = 1000000;
 
 int main(){
-    Parameters params(100.0,1000.0, 1.0, 0.05, 0.2);
+    AmqpClient::Channel::ptr_t channel = AmqpClient::Channel::Create("localhost");
+    channel->DeclareQueue("task_queue", false, true, false, false);
+    channel->DeclareQueue("result_queue", false, true, false, false);
+    AmqpClient::Envelope::ptr_t envelope = channel->BasicConsumeMessage("task_queue");
+
+    Parameters params = nlohmann::json::parse(envelope->Message()->Body()).get<Parameters>();
     EuropeanCall call(params);
     double sum_payoffs=0.0;
     double sum_payoffs_squared=0.0;
@@ -21,6 +31,10 @@ int main(){
     double std_error = std::sqrt((mean_payoffs_squared - (mean_payoffs * mean_payoffs)) / num_paths);
     double discounted= std::exp(-params.r() * params.T());
     double option_price = discounted * mean_payoffs;
-    struct MonteCarloResult result{mean_payoffs, std_error, num_paths};  
+    struct MonteCarloResult result{mean_payoffs, std_error, num_paths};
+    nlohmann::json j = result;
+    channel->BasicPublish("", "result_queue", AmqpClient::BasicMessage::Create(j.dump()));
+    
+
     return 0;
 }
