@@ -2,7 +2,7 @@ import pika
 import json
 import argparse
 
-parser = argparse.ArgumentParser(description="Monte Carlo option pricer — master coordinator")
+parser = argparse.ArgumentParser(description="Monte_Carlo option pricer — master coordinator")
 parser.add_argument("--workers", type=int, default=4, help="Number of worker tasks to dispatch (default: 4)")
 args = parser.parse_args()
 
